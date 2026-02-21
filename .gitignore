@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Maching Learning models
+*.pt
+*.pth
+runs/
+
+# OS
+.DS_Store
+
+# User generated files
+test_tracking_logic.py

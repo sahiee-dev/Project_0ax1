@@ -258,16 +258,35 @@ def main_app():
         lang = st.selectbox("LOCALIZATION SCHEME", ["English", "Telugu"], index=0)
         lang_code = "en" if lang == "English" else "te"
         
+
+        st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("---")
-        st.markdown("""
+        st.markdown("<h4 style='color: #fff; font-size: 0.9rem;'>INFERENCE CONFIGURATION</h4>", unsafe_allow_html=True)
+        
+        # Model Selection
+        model_options = {
+            "Standard (Nano)": "./runs/detect/Normal_Compressed/weights/best.pt",
+            "High Accuracy (Small - DB)": "./models/db.onnx",
+            "High Accuracy (Small - Haar)": "./models/haar.onnx"
+        }
+        selected_model_name = st.selectbox("MODEL ARCHITECTURE", list(model_options.keys()), index=0)
+        model_path = model_options[selected_model_name]
+        
+        # Inference Parameters
+        conf_threshold = st.slider("CONFIDENCE THRESHOLD", 0.0, 1.0, 0.25, 0.05)
+        iou_threshold = st.slider("IOU THRESHOLD", 0.0, 1.0, 0.7, 0.05)
+        use_tta = st.checkbox("ENABLE TTA (TEST TIME AUGMENTATION)", value=False, help="Increases accuracy but reduces speed.")
+
+        st.markdown("---")
+        st.markdown(f"""
         <div style='font-family: JetBrains Mono, monospace; font-size: 0.75rem; color: #888;'>
-        MODEL: YOLOV8N_MODIFIED<br>
+        MODEL: {selected_model_name.upper()}<br>
         BACKEND: CUDA/NVIDIA_RTX<br>
         LATENCY: &lt; 42MS
         </div>
         """, unsafe_allow_html=True)
 
-    model_path = './runs/detect/Normal_Compressed/weights/best.pt'
+    # model_path is now set by the selector above
     
     @st.cache_resource
     def get_model(path):
@@ -341,7 +360,7 @@ def main_app():
                 
                 if st.button("EXECUTE DETECTION ALGORITHM", width='stretch'):
                     with st.spinner("PROCESSING NEURAL LAYERS..."):
-                        results = run_inference(model, image)
+                        results = run_inference(model, image, conf=conf_threshold, iou=iou_threshold, augment=use_tta)
                         processed_data = parse_results(results)
                         st.session_state.processed_data_img = processed_data
             
@@ -409,7 +428,7 @@ def main_app():
                  
                  frames_processed = 0
                  frames_with_weapon = 0
-                 max_weapons = 0
+                 unique_weapon_ids = set()
                  
                  while cap.isOpened():
                      ret, frame = cap.read()
@@ -420,7 +439,7 @@ def main_app():
                      frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                      input_placeholder.image(frame_rgb, use_container_width=True)
                      
-                     results = run_inference(model, frame)
+                     results = run_inference(model, frame, conf=conf_threshold, iou=iou_threshold, augment=use_tta, track=True)
                      processed_data = parse_results(results)
                      
                      output_placeholder.image(processed_data['annotated_image'], channels="BGR", use_container_width=True)
@@ -428,13 +447,16 @@ def main_app():
                      weapon_count = processed_data['total_weapons']
                      if weapon_count > 0:
                          frames_with_weapon += 1
-                     max_weapons = max(max_weapons, weapon_count)
+                         # Add tracking IDs to unique set
+                         for det in processed_data['detections']:
+                             if det.get('track_id') is not None:
+                                 unique_weapon_ids.add(det['track_id'])
                      
                      if total_frames > 0:
                          progress_bar.progress(min(frames_processed / total_frames, 1.0))
                           
                      frames_metric.metric("FRAMES WITH THREATS", frames_with_weapon)
-                     weapons_metric.metric("PEAK CONCURRENT THREATS", max_weapons)
+                     weapons_metric.metric("TOTAL UNIQUE WEAPONS", len(unique_weapon_ids))
                      
                  cap.release()
                  progress_bar.progress(1.0)
@@ -446,7 +468,7 @@ def main_app():
                      "session_metrics": {
                          "frames_analyzed": frames_processed,
                          "threat_occurrence_rate": f"{(frames_with_weapon/frames_processed)*100:.2f}%" if frames_processed > 0 else "0%",
-                         "peak_threat_count": max_weapons
+                         "total_unique_weapons": len(unique_weapon_ids)
                      },
                      "final_security_status": "CRITICAL_THREAT_DETECTED" if frames_with_weapon > 0 else "SESSION_SECURE"
                  })

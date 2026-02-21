@@ -25,11 +25,13 @@ def parse_results(results):
         cls_id = int(box.cls[0])
         label = names[cls_id]
         conf = float(box.conf[0])
+        track_id = int(box.id[0]) if box.id is not None else None
         
         detections.append({
             "label": label,
             "confidence": conf,
-            "bbox": box.xyxy[0].tolist()
+            "bbox": box.xyxy[0].tolist(),
+            "track_id": track_id
         })
         
         if label in counts:
