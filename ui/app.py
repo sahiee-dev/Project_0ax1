@@ -266,8 +266,8 @@ def main_app():
         # Model Selection
         model_options = {
             "Standard (Nano)": "./runs/detect/Normal_Compressed/weights/best.pt",
-            "High Accuracy (Small - DB)": "./models/db.onnx",
-            "High Accuracy (Small - Haar)": "./models/haar.onnx"
+            "High Accuracy (Small - DB)": "./runs/detect/Db/weights/best.pt",
+            "High Accuracy (Small - Haar)": "./runs/detect/Haar/weights/best.pt"
         }
         selected_model_name = st.selectbox("MODEL ARCHITECTURE", list(model_options.keys()), index=0)
         model_path = model_options[selected_model_name]
@@ -434,7 +434,7 @@ def main_app():
                      ret, frame = cap.read()
                      if not ret:
                          break
-                     
+                      
                      frames_processed += 1
                      frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                      input_placeholder.image(frame_rgb, use_container_width=True)
