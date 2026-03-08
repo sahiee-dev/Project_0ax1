@@ -2,15 +2,17 @@ import os
 import torch
 from ultralytics import YOLO
 
-def load_model(model_path):
+def load_models(model_paths):
     """
-    Loads the YOLOv8 model from the specified path.
+    Loads YOLOv8 model(s) from the specified path(s).
+    Returns a dictionary of {name: model}.
     """
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}")
+    if isinstance(model_paths, str):
+        model_paths = [model_paths]
+        
+    models = {}
     
     # PyTorch 2.6+ requires weights_only=True by default
-    # Since this is a trusted model file from our project, we temporarily override this
     original_load = torch.load
     def patched_load(*args, **kwargs):
         kwargs['weights_only'] = False
@@ -18,8 +20,20 @@ def load_model(model_path):
     
     torch.load = patched_load
     try:
-        model = YOLO(model_path)
+        for path in model_paths:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Model file not found at {path}")
+            
+            basename = os.path.basename(os.path.dirname(os.path.dirname(path))) # e.g. Db, Normal_Compressed
+            if "Normal" in basename:
+                name = "v8n"
+            elif "Db" in basename:
+                name = "v8s"
+            else:
+                name = "default"
+                
+            models[name] = YOLO(path)
     finally:
         torch.load = original_load
     
-    return model
+    return models

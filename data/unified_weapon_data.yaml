@@ -1,0 +1,13 @@
+# Unified Weapon Detection Dataset
+# Target balance: ~65% guns (class 0), ~35% knife (class 1)
+# CCTV test is strictly held out — never used in training or val.
+
+path: /Users/lulu/Desktop/Project_0ax1/data/unified_yolo
+train: train/images
+val: val/images
+test: cctv_test/images
+
+nc: 2
+names:
+  - guns
+  - knife

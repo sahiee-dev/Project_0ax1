@@ -1,0 +1,15 @@
+# Custom Tracker Configuration for Forensic Re-ID
+# Extends tracking memory up to 30 seconds (900 frames at 30 FPS)
+tracker_type: botsort # tracker type, ['botsort', 'bytetrack']
+track_high_thresh: 0.3 # lower threshold to maintain tracking on weak detections
+track_low_thresh: 0.1
+new_track_thresh: 0.4 # lower threshold to initialize tracking faster
+track_buffer: 900 # Memory buffer: remember lost tracks for 900 frames
+match_thresh: 0.8 # Threshold for matching tracks
+# BoT-SORT specific settings
+gmc_method: sparseOptFlow # method of global motion compensation
+proximity_thresh: 0.5
+appearance_thresh: 0.25
+with_reid: True
+model: auto
+fuse_score: True

@@ -15,3 +15,8 @@ runs/
 
 # User generated files
 test_tracking_logic.py
+venv2/
+*.zip
+*.tar
+*.code-workspace
+OD-WeaponDetection/

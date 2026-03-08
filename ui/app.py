@@ -10,7 +10,7 @@ import tempfile
 from PIL import Image
 import numpy as np
 
-from model.loader import load_model
+from model.loader import load_models
 from model.inference import run_inference
 from utils.processing import parse_results
 from utils.localization import get_text
@@ -263,37 +263,44 @@ def main_app():
         st.markdown("---")
         st.markdown("<h4 style='color: #fff; font-size: 0.9rem;'>INFERENCE CONFIGURATION</h4>", unsafe_allow_html=True)
         
-        # Model Selection
+        # Forensic Ensemble Toggle
         model_options = {
-            "Standard (Nano)": "./runs/detect/Normal_Compressed/weights/best.pt",
-            "High Accuracy (Small - DB)": "./runs/detect/Db/weights/best.pt",
-            "High Accuracy (Small - Haar)": "./runs/detect/Haar/weights/best.pt"
+            "v8s": "./runs/detect/Db/weights/best.pt",
+            "v8m": "./runs/detect/Haar/weights/best.pt",
+            "v8n": "./runs/detect/Normal_Compressed/weights/best.pt"
         }
-        selected_model_name = st.selectbox("MODEL ARCHITECTURE", list(model_options.keys()), index=0)
-        model_path = model_options[selected_model_name]
+        enable_ensemble = st.checkbox("ENABLE FORENSIC MULTI-MODEL ENSEMBLE", value=False, help="Loads both Nano and Small architectures for maximum recall. Significantly increases processing time.")
         
+        if enable_ensemble:
+            # We construct a list of paths
+            model_paths = [model_options["v8n"], model_options["v8s"]]
+        else:
+            model_paths = [model_options["v8n"]]
+            
         # Inference Parameters
-        conf_threshold = st.slider("CONFIDENCE THRESHOLD", 0.0, 1.0, 0.25, 0.05)
-        iou_threshold = st.slider("IOU THRESHOLD", 0.0, 1.0, 0.7, 0.05)
+        inference_resolution = st.selectbox("BASE INFERENCE RESOLUTION", [640, 768, 1024], index=1, help="Resolution for the base processing pass. Forensic models override this internally for full-scale extraction.")
+        conf_threshold = st.slider("CONFIDENCE THRESHOLD", 0.0, 1.0, 0.20, 0.05)
+        iou_threshold = st.slider("IOU THRESHOLD", 0.0, 1.0, 0.45, 0.05)
         use_tta = st.checkbox("ENABLE TTA (TEST TIME AUGMENTATION)", value=False, help="Increases accuracy but reduces speed.")
+        enable_clahe = st.checkbox("ENABLE CLAHE PREPROCESSING", value=True, help="Improves contrast in low-light/blurry frames without excessive noise.")
+        enable_tiling = st.checkbox("ENABLE LIGHTWEIGHT TILING", value=False, help="Splits 1080p+ frames into 2x2 grids for small object detection.")
 
         st.markdown("---")
         st.markdown(f"""
         <div style='font-family: JetBrains Mono, monospace; font-size: 0.75rem; color: #888;'>
-        MODEL: {selected_model_name.upper()}<br>
+        MODEL: {'FORENSIC ENSEMBLE (v8n+v8s)' if enable_ensemble else 'v8n NANO'}<br>
         BACKEND: CUDA/NVIDIA_RTX<br>
-        LATENCY: &lt; 42MS
+        LATENCY: {'OFFLINE / FORENSIC' if enable_ensemble else '&lt; 42MS'}
         </div>
         """, unsafe_allow_html=True)
 
-    # model_path is now set by the selector above
-    
     @st.cache_resource
-    def get_model(path):
-        return load_model(path)
+    def get_models_cached(paths):
+        from model.loader import load_models
+        return load_models(paths)
 
     try:
-        model = get_model(model_path)
+        models = get_models_cached(model_paths)
     except Exception as e:
         st.error(f"SYSTEM FAULT DETECTED: {e}")
         st.stop()
@@ -359,8 +366,8 @@ def main_app():
                 st.image(image, use_container_width=True)
                 
                 if st.button("EXECUTE DETECTION ALGORITHM", width='stretch'):
-                    with st.spinner("PROCESSING NEURAL LAYERS..."):
-                        results = run_inference(model, image, conf=conf_threshold, iou=iou_threshold, augment=use_tta)
+                    with st.spinner("PROCESSING MULTI-SCALE FORENSIC INFERENCE..." if enable_ensemble else "PROCESSING NEURAL LAYERS..."):
+                        results = run_inference(models, image, conf=conf_threshold, iou=iou_threshold, augment=use_tta, imgsz=inference_resolution, enable_clahe=enable_clahe, enable_tiling=enable_tiling)
                         processed_data = parse_results(results)
                         st.session_state.processed_data_img = processed_data
             
@@ -434,12 +441,14 @@ def main_app():
                      ret, frame = cap.read()
                      if not ret:
                          break
-                      
+                         
                      frames_processed += 1
+                     
                      frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                      input_placeholder.image(frame_rgb, use_container_width=True)
                      
-                     results = run_inference(model, frame, conf=conf_threshold, iou=iou_threshold, augment=use_tta, track=True)
+                     # Force track=True for temporal consistency
+                     results = run_inference(models, frame, conf=conf_threshold, iou=iou_threshold, augment=use_tta, track=True, imgsz=inference_resolution, enable_clahe=enable_clahe, enable_tiling=enable_tiling)
                      processed_data = parse_results(results)
                      
                      output_placeholder.image(processed_data['annotated_image'], channels="BGR", use_container_width=True)
@@ -447,7 +456,6 @@ def main_app():
                      weapon_count = processed_data['total_weapons']
                      if weapon_count > 0:
                          frames_with_weapon += 1
-                         # Add tracking IDs to unique set
                          for det in processed_data['detections']:
                              if det.get('track_id') is not None:
                                  unique_weapon_ids.add(det['track_id'])
