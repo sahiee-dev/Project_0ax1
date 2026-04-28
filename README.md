@@ -1,55 +1,76 @@
-# Intelligent Weapon Detection System
+# 🛡️ Intelligent Weapon Detection System
 
-This project is an advanced system for the autonomous detection of firearms and knives using YOLOv8, now featuring a user-friendly Web UI and Telugu localization.
+An advanced, high-performance system designed for autonomous detection of firearms and knives using **YOLOv8**. This project features a modern Web UI, real-time processing capabilities, and multi-language support.
 
-## Features
+---
 
-- **YOLOv8 Detection**: Efficient real-time object detection for Guns and Knives.
-- **Web Interface**: Built with [Streamlit](https://streamlit.io/) for easy interaction.
-- **Bilingual Support**: Toggle between **English** and **Telugu** interface.
-- **Detection Summary**: Automatic counting of weapons and detection status.
-- **Image & Video Support**: Upload and process both images and videos.
+## 🌟 Key Features
 
-## Requirements
+- **🚀 Real-time Detection**: Powered by YOLOv8 for industry-leading speed and accuracy.
+- **🖼️ Multi-format Support**: Process both images and video streams seamlessly.
+- **🖥️ Modern Web UI**: User-friendly interface built with [Streamlit](https://streamlit.io/).
+- **🌐 Bilingual Support**: Native support for **English** and **Telugu** localization.
+- **📊 Detailed Analytics**: Automatic counting of detected objects with status summaries.
+- **🏗️ Modular Architecture**: Clean separation of model logic, utilities, and UI.
 
-- Python 3.8+
-- Dependencies listed in `requirements.txt`
+---
 
-## Installation
+## 🛠️ Installation & Setup
+
+### Prerequisites
+- **Python 3.8+**
+- **pip** (Python package manager)
+
+### Step-by-Step Guide
 
 1. **Clone the Repository:**
-
    ```bash
-   git clone https://github.com/JoaoAssalim/Weapons-and-Knives-Detector-with-YOLOv8.git
-   cd Weapons-and-Knives-Detector-with-YOLOv8
+   git clone <your-repository-url>
+   cd Project_0ax1
    ```
 
-2. **Install Dependencies:**
+2. **Set up Virtual Environment (Recommended):**
    ```bash
-   pip3 install -r requirements.txt
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-## Usage
-
-1. **Run the Application:**
-
+3. **Install Dependencies:**
    ```bash
-   streamlit run ui/app.py
+   pip install -r requirements.txt
    ```
 
-2. **Using the App:**
-   - Open the URL provided in the terminal (usually `http://localhost:8501`).
-   - Use the **Sidebar** to switch languages (English/Telugu).
-   - Select **Image** or **Video** from the dropdown.
-   - Upload your file to see detection results and summaries.
+---
 
-## Directory Structure
+## 🚀 Usage
 
-- `model/`: YOLOv8 model loading and inference logic.
-- `utils/`: Helper functions for processing results and localization.
-- `ui/`: Streamlit application code.
-- `runs/`: Pre-trained YOLOv8 weights.
+Launch the system using the following command:
 
-## License
+```bash
+streamlit run ui/app.py
+```
 
-This project is distributed under the [MIT] license.
+### Navigating the Interface:
+1. **Sidebar**: Toggle between English and Telugu languages.
+2. **Media Selection**: Choose between Image or Video processing from the dropdown menu.
+3. **Upload**: Drag and drop your files to see instantaneous detection results.
+
+---
+
+## 📁 Repository Structure
+
+- `model/`: core YOLOv8 model loading and inference logic.
+- `utils/`: utility functions for processing results and localization.
+- `ui/`: frontend Streamlit application components.
+- `runs/`: directory for pre-trained YOLOv8 weights and training artifacts.
+- `data/`: dataset configuration and sample files.
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.
+
+---
+
+*Developed with ❤️ for safety and security.*
