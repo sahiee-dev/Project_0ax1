@@ -2,21 +2,48 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.flakes8
+.ipynb_checkpoints
+.mypy_cache/
+.pytest_cache/
+.tox/
+.venv/
 venv/
+ENV/
+env/
 .env
+.venv
 
-# Maching Learning models
+# Machine Learning
 *.pt
 *.pth
 runs/
+*.onnx
+*.engine
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# User generated files
+# Project Specific
 test_tracking_logic.py
 venv2/
 *.zip
 *.tar
 *.code-workspace
 OD-WeaponDetection/
+Results/
+temp_restore/
+image*.png
